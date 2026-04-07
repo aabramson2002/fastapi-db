@@ -1,0 +1,121 @@
+#user model
+from datetime import datetime, timedelta, timezone
+import uuid
+from typing import Optional, Dict, Any
+
+from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.exc import IntegrityError
+from passlib.context import CryptContext
+from pydantic import ValidationError
+import jwt
+from app.schemas.base import UserCreate
+from app.schemas.user import UserResponse, Token
+from app.database import Base #using Base from database instead of from sqlalchemy.orm to avoid circular imports
+
+# Move to config
+SECRET_KEY = "your-secret-key"
+
+#defines all of the data fields
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String(50), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    # Password hashing context
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        return User.pwd_context.hash(password)
+    
+    def verify_password(self, password: str) -> bool:
+        return User.pwd_context.verify(password, self.password_hash)
+    
+    @staticmethod
+    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a JWT access token."""
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=30))
+        to_encode.update({"exp": expire})
+        return jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
+
+
+    @staticmethod
+    def verify_token(token: str) -> Optional[UUID]:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms="HS256")
+            user_id = payload.get("sub")
+            if user_id is None:
+                return None
+            return uuid.UUID(user_id)
+        except (jwt.InvalidTokenError, ValidationError):
+            """Replaced JWT error from Jose with PyJWT error handling (InvalidTokenError)"""
+            return None
+
+    @classmethod
+    def register(cls, db, user_data: Dict[str, Any]) -> "User":
+        """Registers a new user in the database."""
+        try:
+            # Validate password length first
+            password = user_data.get('password', '')
+            if len(password) < 6:  # Strictly less than 6 characters
+                raise ValueError("Password must be at least 6 characters long")
+            
+            # Check if email/username exists
+            existing_user = db.query(cls).filter(
+                (cls.email == user_data.get('email')) |
+                (cls.username == user_data.get('username'))
+            ).first()
+            
+            if existing_user:
+                raise ValueError("Username or email already exists")
+
+            # Validate using Pydantic schema
+            user_create = UserCreate.model_validate(user_data)
+            
+            # Create new user instance
+            new_user = cls(
+                email=user_create.email,
+                username=user_create.username,
+                password_hash=cls.hash_password(user_create.password)
+            )
+            
+            db.add(new_user)
+            db.flush()
+            return new_user
+            
+        except ValidationError as e:
+            raise ValueError(str(e)) # pragma: no cover
+        except ValueError as e:
+            raise e
+        
+    @classmethod
+    def authenticate(cls, db, username: str, password: str) -> Optional[Dict[str, Any]]:
+        """Authenticate user and return token with user data."""
+        user = db.query(cls).filter(
+            (cls.username == username) | (cls.email == username)
+        ).first()
+
+        if not user or not user.verify_password(password):
+            return None # pragma: no cover
+
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+
+        # Create token response using Pydantic models
+        user_response = UserResponse.model_validate(user)
+        token_response = Token(
+            access_token=cls.create_access_token({"sub": str(user.id)}),
+            token_type="bearer",
+            user=user_response
+        )
+
+        return token_response.model_dump()
