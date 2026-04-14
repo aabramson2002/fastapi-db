@@ -4,6 +4,8 @@
 
 import pytest
 from uuid import UUID
+from datetime import datetime, timezone
+
 import pydantic_core
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User

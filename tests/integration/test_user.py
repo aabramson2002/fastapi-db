@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from app.models.user import User
+from uuid import uuid4
 from tests.conftest import create_fake_user, managed_db_session
 
 # Use the logger configured in conftest.py
@@ -326,3 +327,14 @@ def test_error_handling():
         with managed_db_session() as session:
             session.execute(text("INVALID SQL"))
     assert "INVALID SQL" in str(exc_info.value)
+
+# ======================================================================================
+# Representation Test
+# ======================================================================================
+def test_user_repr():
+    """Test User model string representation"""
+    user = User(id=uuid4(), username="test", email="test@example.com", 
+                password_hash="hashed")
+    repr_str = repr(user)
+    assert "test" in repr_str
+    assert "test@example.com" in repr_str
