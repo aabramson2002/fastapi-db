@@ -4,6 +4,7 @@ import uuid
 from typing import Optional, Dict, Any
 
 from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
@@ -28,6 +29,14 @@ class User(Base):
 
     # Password hashing context
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    # Relationship with Calculations
+    """Calculation class connects back to the user"""
+    calculations = relationship(
+        "Calculation",
+        back_populates="user",
+        cascade="all, delete, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
