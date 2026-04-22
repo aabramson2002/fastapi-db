@@ -78,3 +78,7 @@ def get_db():
         yield db  # Provide the session to the caller
     finally:
         db.close()  # Ensure the session is closed after use
+
+# Initialize engine and SessionLocal at module level
+engine = get_engine(settings.DATABASE_URL)
+SessionLocal = get_sessionmaker(engine)
