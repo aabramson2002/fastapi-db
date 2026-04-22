@@ -217,17 +217,28 @@ def fastapi_server():
         process = subprocess.Popen(
             ['python', 'main.py'],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
+            cwd='/home/aabra/projects/fastapi-db'
         )
         if not wait_for_server(server_url, timeout=30):
             raise ServerStartupError("Failed to start test server")
 
         logger.info("Test server started successfully.")
-        yield  # Run all tests that depend on this fixture
+        #Added server_url to yield so that tests can use it to make requests
+        yield server_url  # Return the server URL to test functions
 
     except Exception as e:
-        logger.error(f"Server error: {str(e)}")
-        raise
+        try:
+            stdout, stderr = process.communicate(timeout=2)
+            logger.error(f"Server startup failed: {str(e)}")
+            if stderr:
+                logger.error(f"Server stderr: {stderr.decode()}")
+            if stdout:
+                logger.error(f"Server stdout: {stdout.decode()}")
+        except:
+            pass
+        raise ServerStartupError(f"Failed to start test server: {str(e)}")
+        
     finally:
         logger.info("Terminating test server...")
         process.terminate()
