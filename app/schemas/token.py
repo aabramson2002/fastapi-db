@@ -46,6 +46,9 @@ class TokenResponse(BaseModel):
     user_id: UUID = Field(..., description="User's UUID")
     username: str = Field(..., description="User's username")
     email: str = Field(..., description="User's email address")
+    first_name: str = Field(..., description="User's first name")
+    last_name: str = Field(..., description="User's last name")
+    is_active: bool = Field(..., description="User's active status")
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -58,6 +61,9 @@ class TokenResponse(BaseModel):
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
                 "username": "johndoe",
                 "email": "john.doe@example.com",
+                "first_name": "John",
+                "last_name": "Doe",
+                "is_active": True
             }
         }
     )
