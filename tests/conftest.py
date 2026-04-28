@@ -229,13 +229,22 @@ def fastapi_server():
     """
     server_url = 'http://127.0.0.1:8002/'
     logger.info("Starting test server...")
+    
+    # Initialize process as None to handle errors in try block
+    process = None
 
     try:
+        import os
+        # Get the directory where conftest.py is located (tests directory)
+        tests_dir = os.path.dirname(os.path.abspath(__file__))
+        # Get the project root (parent of tests directory)
+        project_root = os.path.dirname(tests_dir)
+        
         process = subprocess.Popen(
             ['python', 'main.py'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd='/home/aabra/projects/fastapi-db'
+            cwd=project_root
         )
         if not wait_for_server(server_url, timeout=30):
             raise ServerStartupError("Failed to start test server")
@@ -246,26 +255,28 @@ def fastapi_server():
 
     # If the server fails to start, capture and log the error output for debugging
     except Exception as e:
-        try:
-            stdout, stderr = process.communicate(timeout=2)
-            logger.error(f"Server startup failed: {str(e)}")
-            if stderr:
-                logger.error(f"Server stderr: {stderr.decode()}")
-            if stdout:
-                logger.error(f"Server stdout: {stdout.decode()}")
-        except:
-            pass
+        if process is not None:
+            try:
+                stdout, stderr = process.communicate(timeout=2)
+                logger.error(f"Server startup failed: {str(e)}")
+                if stderr:
+                    logger.error(f"Server stderr: {stderr.decode()}")
+                if stdout:
+                    logger.error(f"Server stdout: {stdout.decode()}")
+            except:
+                pass
         raise ServerStartupError(f"Failed to start test server: {str(e)}")
         
     finally:
-        logger.info("Terminating test server...")
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-            logger.info("Test server terminated gracefully.")
-        except subprocess.TimeoutExpired:
-            logger.warning("Test server did not terminate in time; killing it.")
-            process.kill()
+        if process is not None:
+            logger.info("Terminating test server...")
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+                logger.info("Test server terminated gracefully.")
+            except subprocess.TimeoutExpired:
+                logger.warning("Test server did not terminate in time; killing it.")
+                process.kill()
 
 # ======================================================================================
 # Browser and Page Fixtures (Optional)
