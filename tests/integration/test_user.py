@@ -67,6 +67,8 @@ def test_session_handling(db_session):
     user1 = User(
         email="test1@example.com",
         username="testuser1",
+        first_name="Test",
+        last_name="User1",
         password_hash=User.hash_password("password123")
     )
     db_session.add(user1)
@@ -81,6 +83,8 @@ def test_session_handling(db_session):
         user2 = User(
             email="test1@example.com",  # Duplicate
             username="testuser2",
+            first_name="Test",
+            last_name="User2",
             password_hash=User.hash_password("password456")
 
         )
@@ -98,6 +102,8 @@ def test_session_handling(db_session):
     user3 = User(
         email="test3@example.com",
         username="testuser3",
+        first_name="Test",
+        last_name="User3",
         password_hash=User.hash_password("password789")
     )
     db_session.add(user3)
@@ -290,6 +296,8 @@ def test_user_persistence_after_constraint(db_session):
     initial_user_data = {
         "email": "first@example.com",
         "username": "firstuser",
+        "first_name": "First",
+        "last_name": "User",
         "password_hash": User.hash_password("password123")
     }
     initial_user = User(**initial_user_data)
@@ -301,6 +309,8 @@ def test_user_persistence_after_constraint(db_session):
         duplicate_user = User(
             email="first@example.com",  # Duplicate
             username="seconduser",
+            first_name="Second",
+            last_name="User",
             password_hash=User.hash_password("password456")
         )
         db_session.add(duplicate_user)
@@ -334,7 +344,7 @@ def test_error_handling():
 def test_user_repr():
     """Test User model string representation"""
     user = User(id=uuid4(), username="test", email="test@example.com", 
-                password_hash="hashed")
+                first_name="Test", last_name="User", password_hash="hashed")
     repr_str = repr(user)
     assert "test" in repr_str
     assert "test@example.com" in repr_str
