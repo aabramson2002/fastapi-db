@@ -10,6 +10,8 @@ def test_user_base_valid():
     data = {
         "email": "john.doe@example.com",
         "username": "johndoe",
+        "first_name": "John",
+        "last_name": "Doe",
     }
     user = UserBase(**data)
     assert user.email == "john.doe@example.com"
@@ -20,6 +22,8 @@ def test_user_base_invalid_email():
     data = {
         "email": "invalid-email",
         "username": "johndoe",
+        "first_name": "John",
+        "last_name": "Doe",
     }
     with pytest.raises(ValidationError):
         UserBase(**data)
@@ -27,28 +31,28 @@ def test_user_base_invalid_email():
 
 def test_password_mixin_valid():
     """Test PasswordMixin with valid password."""
-    data = {"password": "SecurePass123"}
+    data = {"password": "ValidPass123"}
     password_mixin = PasswordMixin(**data)
-    assert password_mixin.password == "SecurePass123"
+    assert password_mixin.password == "ValidPass123"
 
 
 def test_password_mixin_invalid_short_password():
     """Test PasswordMixin with short password."""
-    data = {"password": "short"}
+    data = {"password": "Short1"}  # Only 6 characters
     with pytest.raises(ValidationError):
         PasswordMixin(**data)
 
 
 def test_password_mixin_no_uppercase():
     """Test PasswordMixin with no uppercase letter."""
-    data = {"password": "lowercase1"}
+    data = {"password": "lowercase123"}
     with pytest.raises(ValidationError, match="Password must contain at least one uppercase letter"):
         PasswordMixin(**data)
 
 
 def test_password_mixin_no_lowercase():
     """Test PasswordMixin with no lowercase letter."""
-    data = {"password": "UPPERCASE1"}
+    data = {"password": "UPPERCASE123"}
     with pytest.raises(ValidationError, match="Password must contain at least one lowercase letter"):
         PasswordMixin(**data)
 
@@ -65,11 +69,13 @@ def test_user_create_valid():
     data = {
         "email": "john.doe@example.com",
         "username": "johndoe",
-        "password": "SecurePass123",
+        "first_name": "John",
+        "last_name": "Doe",
+        "password": "ValidPass123",
     }
     user_create = UserCreate(**data)
     assert user_create.username == "johndoe"
-    assert user_create.password == "SecurePass123"
+    assert user_create.password == "ValidPass123"
 
 
 def test_user_create_invalid_password():
@@ -77,6 +83,8 @@ def test_user_create_invalid_password():
     data = {
         "email": "john.doe@example.com",
         "username": "johndoe",
+        "first_name": "John",
+        "last_name": "Doe",
         "password": "short",
     }
     with pytest.raises(ValidationError):
@@ -85,14 +93,14 @@ def test_user_create_invalid_password():
 
 def test_user_login_valid():
     """Test UserLogin with valid data."""
-    data = {"username": "johndoe", "password": "SecurePass123"}
+    data = {"username": "johndoe", "password": "ValidPass123"}
     user_login = UserLogin(**data)
     assert user_login.username == "johndoe"
 
 
 def test_user_login_invalid_username():
     """Test UserLogin with short username."""
-    data = {"username": "jd", "password": "SecurePass123"}
+    data = {"username": "jd", "password": "ValidPass123"}
     with pytest.raises(ValidationError):
         UserLogin(**data)
 
