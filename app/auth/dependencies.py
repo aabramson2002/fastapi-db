@@ -2,10 +2,8 @@
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserResponse
-from app.database import get_db
 from datetime import datetime, timezone
 from uuid import UUID
 
