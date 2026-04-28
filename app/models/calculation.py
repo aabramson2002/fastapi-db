@@ -22,7 +22,7 @@ class Calculation(Base):
     #operation_a = Column(Float, nullable=False)
     #operation_b = Column(Float, nullable=False)
     result = Column(Float, nullable=False)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Relationship with User
     """Calculation class connects back to the user"""
