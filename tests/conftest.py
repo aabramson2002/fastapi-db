@@ -46,15 +46,32 @@ database.SessionLocal = TestingSessionLocal  # Override SessionLocal for tests
 # ======================================================================================
 def create_fake_user() -> Dict[str, str]:
     """
-    Generate a dictionary of fake user data for testing.
+    Generate a dictionary of fake user data for testing direct User model instantiation.
 
     Returns:
-        A dict containing user fields with fake data.
+        A dict containing user fields with fake data and password_hash for DB insertion.
     """
     return {
         "username": fake.unique.user_name(),
         "email": fake.unique.email(),  # Ensure uniqueness where necessary
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
         "password_hash": User.hash_password(fake.password(length=12)) # Hashes password
+    }
+
+def create_fake_user_registration_data() -> Dict[str, str]:
+    """
+    Generate a dictionary of fake user data for User.register() method calls.
+
+    Returns:
+        A dict containing user fields (without password) suitable for User.register().
+        Caller should add a 'password' field before passing to User.register().
+    """
+    return {
+        "username": fake.unique.user_name(),
+        "email": fake.unique.email(),
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
     }
 
 @contextmanager
@@ -160,8 +177,8 @@ def db_session(request) -> Generator[Session, None, None]:
 # ======================================================================================
 @pytest.fixture
 def fake_user_data() -> Dict[str, str]:
-    """Provide a dictionary of fake user data."""
-    return create_fake_user()
+    """Provide a dictionary of fake user data for User.register() calls."""
+    return create_fake_user_registration_data()
 
 @pytest.fixture
 def test_user(db_session: Session) -> User:
@@ -227,6 +244,7 @@ def fastapi_server():
         #Added server_url to yield so that tests can use it to make requests
         yield server_url  # Return the server URL to test functions
 
+    # If the server fails to start, capture and log the error output for debugging
     except Exception as e:
         try:
             stdout, stderr = process.communicate(timeout=2)
