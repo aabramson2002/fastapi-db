@@ -18,9 +18,9 @@ from app.models.calculation import Calculation
 from app.models.user import User
 from app.schemas.calculation import CalculationBase, CalculationResponse, CalculationUpdate
 from app.schemas.token import TokenResponse
-from app.schemas.base import UserCreate
-from app.schemas.user import UserResponse, UserLogin
+from app.schemas.user import UserCreate, UserResponse, UserLogin
 from app.database import Base, get_db, engine
+
 
 # Create tables on startup
 @asynccontextmanager
@@ -43,25 +43,25 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Home page route
-@app.get("/", response_class=HTMLResponse, tags=["web"], name="read_index")
+@app.get("/", response_class=HTMLResponse, tags=["web"])
 def read_index(request: Request):
-    return templates.TemplateResponse(request, "index.html", {"request": request, "url_for": request.url_for})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # Login page route
-@app.get("/login", response_class=HTMLResponse, tags=["web"], name="login_page")
+@app.get("/login", response_class=HTMLResponse, tags=["web"])
 def login_page(request: Request):
-    return templates.TemplateResponse(request, "login.html", {"request": request, "url_for": request.url_for})
+    return templates.TemplateResponse("login.html", {"request": request})
 
 # Registration page route
-@app.get("/register", response_class=HTMLResponse, tags=["web"], name="register_page")
+@app.get("/register", response_class=HTMLResponse, tags=["web"])
 def register_page(request: Request):
-    return templates.TemplateResponse(request, "register.html", {"request": request, "url_for": request.url_for})
+    return templates.TemplateResponse("register.html", {"request": request})
 
 # Dashboard page Route
 
-@app.get("/dashboard", response_class=HTMLResponse, tags=["web"], name="dashboard_page")
+@app.get("/dashboard", response_class=HTMLResponse, tags=["web"])
 def dashboard_page(request: Request):
-    return templates.TemplateResponse(request, "dashboard.html", {"request": request, "url_for": request.url_for})
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 # ------------------------------------------------------------------------------
 # Health Endpoint
@@ -105,29 +105,9 @@ def login_json(user_login: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = auth_result["user"]
-    db.commit()  # Commit the last_login update
-
-    # Ensure expires_at is timezone-aware
-    expires_at = auth_result.get("expires_at")
-    if expires_at and expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    else:
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
-
-    return TokenResponse(
-        access_token=auth_result["access_token"],
-        refresh_token=auth_result["refresh_token"],
-        token_type="bearer",
-        expires_at=expires_at,
-        user_id=user.id,
-        username=user.username,
-        email=user.email,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        is_active=user.is_active,
-        is_verified=user.is_verified
-    )
+    # auth_result is already a dict from TokenResponse.model_dump()
+    # So we can return it directly
+    return auth_result
 
 @app.post("/auth/token", tags=["auth"])
 def login_form(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -157,7 +137,7 @@ def login_form(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
 )
 def create_calculation(
     calculation_data: CalculationBase,
-    current_user = Depends(get_current_active_user),
+    current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -168,6 +148,7 @@ def create_calculation(
     """
     try:
         # Create the calculation using the factory method.
+        # current_user is a UserResponse schema, so we use current_user.id
         new_calculation = Calculation.create(
             calculation_type=calculation_data.type,
             user_id=current_user.id,
@@ -191,7 +172,7 @@ def create_calculation(
 # Browse / List Calculations (for the current user)
 @app.get("/calculations", response_model=List[CalculationResponse], tags=["calculations"])
 def list_calculations(
-    current_user = Depends(get_current_active_user),
+    current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     calculations = db.query(Calculation).filter(Calculation.user_id == current_user.id).all()
@@ -201,7 +182,7 @@ def list_calculations(
 @app.get("/calculations/{calc_id}", response_model=CalculationResponse, tags=["calculations"])
 def get_calculation(
     calc_id: str,
-    current_user = Depends(get_current_active_user),
+    current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     try:
@@ -221,7 +202,7 @@ def get_calculation(
 def update_calculation(
     calc_id: str,
     calculation_update: CalculationUpdate,
-    current_user = Depends(get_current_active_user),
+    current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     try:
@@ -247,7 +228,7 @@ def update_calculation(
 @app.delete("/calculations/{calc_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["calculations"])
 def delete_calculation(
     calc_id: str,
-    current_user = Depends(get_current_active_user),
+    current_user: UserResponse = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     try:
@@ -263,6 +244,7 @@ def delete_calculation(
     db.delete(calculation)
     db.commit()
     return None
+
 
 # ------------------------------------------------------------------------------
 # Main Block to Run the Server
