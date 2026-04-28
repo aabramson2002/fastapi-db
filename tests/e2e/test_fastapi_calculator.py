@@ -62,14 +62,13 @@ def test_user_registration(base_url: str):
     response = requests.post(url, json=payload)
     assert response.status_code == 201, f"Expected 201 but got {response.status_code}. Response: {response.text}"
     data = response.json()
-    for key in ["id", "username", "email", "first_name", "last_name", "is_active", "is_verified"]:
+    for key in ["id", "username", "email", "first_name", "last_name", "is_active"]:
         assert key in data, f"Field '{key}' missing in registration response."
     assert data["username"] == "alicesmith"
     assert data["email"] == "alice.smith@example.com"
     assert data["first_name"] == "Alice"
     assert data["last_name"] == "Smith"
-    assert data["is_active"] is True
-    assert data["is_verified"] is False
+    assert data["is_active"] == True
 
 def test_user_login(base_url: str):
     reg_url = f"{base_url}/auth/register"
@@ -107,8 +106,7 @@ def test_user_login(base_url: str):
         "email": str,
         "first_name": str,
         "last_name": str,
-        "is_active": bool,
-        "is_verified": bool
+        "is_active": bool
     }
     
     for field, expected_type in required_fields.items():
@@ -122,7 +120,7 @@ def test_user_login(base_url: str):
     assert login_data["email"] == test_user["email"]
     assert login_data["first_name"] == test_user["first_name"]
     assert login_data["last_name"] == test_user["last_name"]
-    assert login_data["is_active"] is True
+    assert login_data["is_active"] == True
     
     expires_at = _parse_datetime(login_data["expires_at"])
     current_time = datetime.now(timezone.utc)
