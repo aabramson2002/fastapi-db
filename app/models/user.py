@@ -6,12 +6,10 @@ from typing import Optional, Dict, Any
 from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from pydantic import ValidationError
 import jwt
 from app.schemas.base import UserCreate
-from app.schemas.user import UserResponse, Token
 from app.database import Base #using Base from database instead of from sqlalchemy.orm to avoid circular imports
 
 # Move to config
@@ -25,6 +23,9 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
+    first_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=False)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Password hashing context
@@ -94,7 +95,10 @@ class User(Base):
             new_user = cls(
                 email=user_create.email,
                 username=user_create.username,
-                password_hash=cls.hash_password(user_create.password)
+                first_name=user_create.first_name,
+                last_name=user_create.last_name,
+                password_hash=cls.hash_password(user_create.password),
+                is_active=True
             )
             
             db.add(new_user)
@@ -116,15 +120,26 @@ class User(Base):
         if not user or not user.verify_password(password):
             return None # pragma: no cover
 
-        user.last_login = datetime.now(timezone.utc)
-        db.commit()
-
+        # Create tokens
+        access_token = cls.create_access_token({"sub": str(user.id)})
+        refresh_token = cls.create_access_token({"sub": str(user.id), "type": "refresh"})
+        
+        # Calculate expiration
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+        
         # Create token response using Pydantic models
-        user_response = UserResponse.model_validate(user)
-        token_response = Token(
-            access_token=cls.create_access_token({"sub": str(user.id)}),
+        from app.schemas.token import TokenResponse
+        token_response = TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
             token_type="bearer",
-            user=user_response
+            expires_at=expires_at,
+            user_id=user.id,
+            username=user.username,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            is_active=user.is_active
         )
 
         return token_response.model_dump()
