@@ -255,6 +255,7 @@ def fastapi_server():
 
     # If the server fails to start, capture and log the error output for debugging
     except Exception as e:
+        # Attempt to capture server output if available for debugging
         if process is not None:
             try:
                 stdout, stderr = process.communicate(timeout=2)
@@ -268,6 +269,7 @@ def fastapi_server():
         raise ServerStartupError(f"Failed to start test server: {str(e)}")
         
     finally:
+        # Ensure the server process is terminated after tests complete
         if process is not None:
             logger.info("Terminating test server...")
             process.terminate()
