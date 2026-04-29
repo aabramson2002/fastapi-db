@@ -181,6 +181,7 @@ class CalculationResponse(CalculationBase):
     user_id: UUID
     result: float
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -191,7 +192,8 @@ class CalculationResponse(CalculationBase):
                 "type": "addition",
                 "inputs": [1, 2, 3],
                 "result": 6,
-                "created_at": "2026-04-06T00:00:00"
+                "created_at": "2026-04-06T00:00:00",
+                "updated_at": "2026-04-06T00:00:00"
             }
         }
     ) # Enable attribute access for ORM models
