@@ -214,6 +214,7 @@ def test_update_with_refresh(db_session, test_user):
     Update a user's email and refresh the session to see updated fields.
     """
     original_email = test_user.email
+    original_update_time = test_user.updated_at
     
     new_email = f"new_{original_email}"
     test_user.email = new_email
@@ -221,6 +222,7 @@ def test_update_with_refresh(db_session, test_user):
     db_session.refresh(test_user)  # Refresh to populate fields
     
     assert test_user.email == new_email, "Email should have been updated"
+    assert test_user.updated_at > original_update_time, "Updated time should be newer"
     logger.info(f"Successfully updated user {test_user.id}")
 
 # ======================================================================================
