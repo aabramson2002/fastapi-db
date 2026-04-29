@@ -246,8 +246,8 @@ def test_calculation_response_valid():
         "type": "addition",
         "inputs": [10, 5],
         "result": 15.0,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
     }
     calc = CalculationResponse(**data)
     assert calc.result == 15.0
@@ -264,8 +264,8 @@ def test_calculation_response_missing_result():
         "type": "multiplication",
         "inputs": [2, 3],
         # Missing result
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
     }
     with pytest.raises(ValidationError) as exc_info:
         CalculationResponse(**data)
@@ -406,7 +406,8 @@ def test_calculation_response_valid():
         "type": "addition",
         "inputs": [1, 2, 3],
         "result": 6.0,
-        "created_at": now
+        "created_at": now,
+        "updated_at": now
     }
     response = CalculationResponse(**data)
     assert response.id == calc_id
