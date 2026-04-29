@@ -19,14 +19,15 @@ SECRET_KEY = "your-secret-key"
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username = Column(String(50), unique=True, nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
     # Password hashing context
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -39,8 +40,29 @@ class User(Base):
         cascade="all, delete, delete-orphan"
     )
 
+    def __init__(self, *args, **kwargs):
+        """Initialize a new user, handling password hashing if provided."""
+        if "hashed_password" in kwargs:
+            kwargs["password"] = kwargs.pop("hashed_password")
+        super().__init__(*args, **kwargs)
+
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
+
+    def update(self, **kwargs):
+        """
+        Update user attributes and ensure updated_at is refreshed.
+        
+        Args:
+            **kwargs: Attributes to update
+            
+        Returns:
+            User: The updated user instance
+        """
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.updated_at = datetime.now(timezone.utc)
+        return self
 
     @staticmethod
     def hash_password(password: str) -> str:
