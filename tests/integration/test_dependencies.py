@@ -17,6 +17,7 @@ sample_user_data = {
     "last_name": "User",
     "is_active": True,
     "created_at": datetime.now(timezone.utc),
+    "updated_at": datetime.now(timezone.utc),
 }
 
 inactive_user_data = {
@@ -27,6 +28,7 @@ inactive_user_data = {
     "last_name": "User",
     "is_active": False,
     "created_at": datetime.now(timezone.utc),
+    "updated_at": datetime.now(timezone.utc),
 }
 
 # Fixture for mocking token verification
@@ -49,6 +51,7 @@ def test_get_current_user_valid_token_existing_user(mock_verify_token):
     assert user_response.last_name == sample_user_data["last_name"]
     assert user_response.is_active == sample_user_data["is_active"]
     assert user_response.created_at == sample_user_data["created_at"]
+    assert user_response.updated_at == sample_user_data["updated_at"]
 
     mock_verify_token.assert_called_once_with("validtoken")
 
