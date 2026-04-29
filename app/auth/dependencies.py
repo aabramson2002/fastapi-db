@@ -42,6 +42,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
                     last_name="User",
                     is_active=True,
                     created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
             else:
                 raise credentials_exception
@@ -56,6 +57,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
                 last_name="User",
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
         else:
             raise credentials_exception
