@@ -6,7 +6,6 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy import Column, Float, String, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 
 from app.database import Base #using Base from database instead of from sqlalchemy.orm to avoid circular imports
@@ -15,14 +14,13 @@ from app.database import Base #using Base from database instead of from sqlalche
 class Calculation(Base):
     __tablename__ = 'calculations'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
-    type = Column(String(50), nullable=False) # "addition", "subtraction", "multiplication", "division", and more
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
+    type = Column(String(50), nullable=False, index=True) # "addition", "subtraction", "multiplication", "division", and more
     inputs = Column(JSON, nullable=False) # Store inputs as JSON array of floats
-    #operation_a = Column(Float, nullable=False)
-    #operation_b = Column(Float, nullable=False)
     result = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     # Relationship with User
     """Calculation class connects back to the user"""
