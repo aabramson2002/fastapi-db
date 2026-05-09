@@ -350,3 +350,131 @@ def test_user_repr():
     repr_str = repr(user)
     assert "test" in repr_str
     assert "test@example.com" in repr_str
+
+# ======================================================================================
+# User Password and Method Tests
+# ======================================================================================
+
+def test_hash_password():
+    """Test password hashing functionality."""
+    password = "TestPassword123"
+    hashed = User.hash_password(password)
+    
+    assert hashed != password
+    assert len(hashed) > len(password)
+    user = User(
+        username="testuser",
+        email="test@example.com",
+        password_hash=hashed,
+        first_name="Test",
+        last_name="User"
+    )
+    assert user.verify_password(password)
+
+def test_verify_password_correct(db_session, test_user):
+    """Test verify_password with correct password."""
+    assert test_user.verify_password("TestPassword123")
+
+def test_verify_password_incorrect(db_session, test_user):
+    """Test verify_password with incorrect password."""
+    assert not test_user.verify_password("WrongPassword123")
+
+def test_user_update_method(db_session, test_user):
+    """Test User.update() method."""
+    original_first_name = test_user.first_name
+    test_user.update(first_name="Updated", last_name="Name")
+    db_session.commit()
+    
+    assert test_user.first_name == "Updated"
+    assert test_user.last_name == "Name"
+
+def test_user_register_success(db_session):
+    """Test User.register() with valid data."""
+    user_data = {
+        "username": "newuser",
+        "email": "newuser@example.com",
+        "password": "ValidPassword123",
+        "confirm_password": "ValidPassword123",
+        "first_name": "New",
+        "last_name": "User"
+    }
+    
+    new_user = User.register(db_session, user_data)
+    
+    assert new_user.username == "newuser"
+    assert new_user.email == "newuser@example.com"
+    assert new_user.first_name == "New"
+    assert new_user.last_name == "User"
+    assert new_user.is_active is True
+    assert new_user.verify_password("ValidPassword123")
+
+def test_user_register_duplicate_email(db_session, test_user):
+    """Test User.register() with duplicate email."""
+    user_data = {
+        "username": "different_username",
+        "email": test_user.email,
+        "password": "ValidPassword123",
+        "confirm_password": "ValidPassword123",
+        "first_name": "New",
+        "last_name": "User"
+    }
+    
+    with pytest.raises(ValueError, match="Username or email already exists"):
+        User.register(db_session, user_data)
+
+def test_user_register_duplicate_username(db_session, test_user):
+    """Test User.register() with duplicate username."""
+    user_data = {
+        "username": test_user.username,
+        "email": "newemail@example.com",
+        "password": "ValidPassword123",
+        "confirm_password": "ValidPassword123",
+        "first_name": "New",
+        "last_name": "User"
+    }
+    
+    with pytest.raises(ValueError, match="Username or email already exists"):
+        User.register(db_session, user_data)
+
+def test_user_register_short_password(db_session):
+    """Test User.register() with password too short."""
+    user_data = {
+        "username": "newuser",
+        "email": "newuser@example.com",
+        "password": "short",
+        "confirm_password": "short",
+        "first_name": "New",
+        "last_name": "User"
+    }
+    
+    with pytest.raises(ValueError, match="Password must be at least"):
+        User.register(db_session, user_data)
+
+def test_user_authenticate_success(db_session, test_user):
+    """Test User.authenticate() with correct credentials."""
+    token_response = User.authenticate(db_session, "testuser", "TestPassword123")
+    
+    assert token_response is not None
+    assert "access_token" in token_response
+    assert "refresh_token" in token_response
+    assert token_response["token_type"] == "bearer"
+    assert token_response["username"] == "testuser"
+
+def test_user_authenticate_with_email(db_session, test_user):
+    """Test User.authenticate() using email instead of username."""
+    token_response = User.authenticate(db_session, test_user.email, "TestPassword123")
+    
+    assert token_response is not None
+    assert "access_token" in token_response
+
+def test_user_authenticate_wrong_password(db_session, test_user):
+    """Test User.authenticate() with wrong password."""
+    token_response = User.authenticate(db_session, "testuser", "WrongPassword123")
+    
+    assert token_response is None
+
+def test_user_authenticate_nonexistent_user(db_session):
+    """Test User.authenticate() with non-existent user."""
+    token_response = User.authenticate(db_session, "nonexistent", "SomePassword123")
+    
+    assert token_response is None
