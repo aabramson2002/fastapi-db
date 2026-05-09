@@ -294,6 +294,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         result = inputs.reduce((a, b, i) => i === 0 ? a : a / b, inputs[0]);
         break;
+      case 'modulus':
+        if (inputs.some((value, index) => index > 0 && value === 0)) {
+          return 'Cannot modulus by zero';
+        }
+        result = inputs.reduce((a, b, i) => i === 0 ? a : a % b, inputs[0]);
+        break;
+      case 'power':
+        result = inputs.reduce((a, b, i) => i === 0 ? a : Math.pow(a, b), inputs[0]);
+        break;
+      case 'root':
+        if (inputs.some((value, index) => index > 0 && value === 0)) {
+          return 'Cannot take root with zero degree';
+        }
+        if (inputs.some((value, index) => index > 0 && value < 0)) {
+          return 'Cannot take root with negative degree';
+        }
+        result = inputs.reduce((a, b, i) => i === 0 ? a : Math.pow(a, 1 / b), inputs[0]);
+        break;
+      case 'absolute_difference':
+        result = inputs.reduce((a, b) => a + Math.abs(b - a), 0);
+        break;
       default:
         return 'Unknown operation';
     }
@@ -329,6 +350,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         break;
       case 'division':
         operator = '÷';
+        break;
+      case 'modulus':
+        operator = '%';
+        break;
+      case 'power':
+        operator = '^';
+        break;  
+      case 'root':
+        operator = '√'; // Alt 251 for square root symbol
+        break;
+      case 'absolute_difference':
+        operator = '||';
         break;
       default:
         operator = '?';
