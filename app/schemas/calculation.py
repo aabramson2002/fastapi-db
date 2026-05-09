@@ -21,6 +21,10 @@ class CalculationType(str, Enum):
     SUBTRACTION = "subtraction"
     MULTIPLICATION = "multiplication"
     DIVISION = "division"
+    MODULUS = "modulus"
+    POWER = "power"
+    ROOT = "root"
+    ABSOLUTE_DIFFERENCE = "absolute_difference"
 
 
 class CalculationBase(BaseModel):
