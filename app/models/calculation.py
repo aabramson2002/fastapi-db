@@ -39,6 +39,10 @@ class Calculation(Base):
             "subtraction": Subtraction,
             "multiplication": Multiplication,
             "division": Division,
+            "modulus": Modulus,
+            "power": Power,
+            "root": Root,
+            "absolute_difference": AbsoluteDifference,
         }
         calculation_class = calculation_classes.get(calculation_type.lower())
         if not calculation_class:
@@ -157,6 +161,115 @@ class Division(Calculation):
                 result /= num
             except ZeroDivisionError:
                 raise ValueError("Cannot divide by zero.")
+        return result
+    
+class Modulus(Calculation):
+    __mapper_args__ = {
+        "polymorphic_identity": "modulus",
+    }
+
+    def get_result(self) -> float:
+        """
+        Calculate the modulus of all input numbers.
+
+        Returns:
+            The modulus of all inputs
+
+        Raises:
+            ValueError: If inputs is not a list or has fewer than 2 numbers
+        """
+        if not isinstance(self.inputs, list):
+            raise ValueError("Inputs must be a list of numbers.")
+        if len(self.inputs) < 2:
+            raise ValueError(
+                "Inputs must be a list with at least two numbers."
+            )
+        result = self.inputs[0]
+        for num in self.inputs[1:]:
+            try:
+                result %= num
+            except ZeroDivisionError:
+                raise ValueError("Cannot perform modulus by zero.")
+        return result
+
+class Power(Calculation):
+    __mapper_args__ = {
+        "polymorphic_identity": "power",
+    }
+
+    def get_result(self) -> float:
+        """
+        Calculate the power of all input numbers.
+
+        Returns:
+            The power of all inputs
+
+        Raises:
+            ValueError: If inputs is not a list or has fewer than 2 numbers
+        """
+        if not isinstance(self.inputs, list):
+            raise ValueError("Inputs must be a list of numbers.")
+        if len(self.inputs) < 2:
+            raise ValueError(
+                "Inputs must be a list with at least two numbers."
+            )
+        result = self.inputs[0]
+        for num in self.inputs[1:]:
+            result **= num
+        return result
+    
+class Root(Calculation):
+    __mapper_args__ = {
+        "polymorphic_identity": "root",
+    }
+
+    def get_result(self) -> float:
+        """
+        Calculate the root of all input numbers.
+
+        Returns:
+            The root of all inputs
+
+        Raises:
+            ValueError: If inputs is not a list or has fewer than 2 numbers
+        """
+        if not isinstance(self.inputs, list):
+            raise ValueError("Inputs must be a list of numbers.")
+        if len(self.inputs) < 2:
+            raise ValueError(
+                "Inputs must be a list with at least two numbers."
+            )
+        result = self.inputs[0]
+        for num in self.inputs[1:]:
+            if num == 0:
+                raise ValueError("Cannot take root with zero as degree.")
+            result **= (1 / num)
+        return result
+    
+class AbsoluteDifference(Calculation):
+    __mapper_args__ = {
+        "polymorphic_identity": "absolute_difference",
+    }
+
+    def get_result(self) -> float:
+        """
+        Calculate the absolute difference of all input numbers.
+
+        Returns:
+            The absolute difference of all inputs
+
+        Raises:
+            ValueError: If inputs is not a list or has fewer than 2 numbers
+        """
+        if not isinstance(self.inputs, list):
+            raise ValueError("Inputs must be a list of numbers.")
+        if len(self.inputs) < 2:
+            raise ValueError(
+                "Inputs must be a list with at least two numbers."
+            )
+        result = self.inputs[0]
+        for num in self.inputs[1:]:
+            result = abs(result - num)
         return result
     
         
