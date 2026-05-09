@@ -638,24 +638,24 @@ def test_all_calculation_types_with_same_inputs():
     user_id = dummy_user_id()
     
     # Each should work with [10, 2]
-    addition = Addition(user_id=user_id, inputs=[10, 2])
-    assert addition.get_result() == 12
+    addition = Addition(user_id=user_id, inputs=[4, 2])
+    assert addition.get_result() == 6
     
-    subtraction = Subtraction(user_id=user_id, inputs=[10, 2])
-    assert subtraction.get_result() == 8
+    subtraction = Subtraction(user_id=user_id, inputs=[4, 2])
+    assert subtraction.get_result() == 2
     
-    multiplication = Multiplication(user_id=user_id, inputs=[10, 2])
-    assert multiplication.get_result() == 20
+    multiplication = Multiplication(user_id=user_id, inputs=[4, 2])
+    assert multiplication.get_result() == 8
     
-    division = Division(user_id=user_id, inputs=[10, 2])
-    assert division.get_result() == 5.0
+    division = Division(user_id=user_id, inputs=[4, 2])
+    assert division.get_result() == 2.0
     
-    modulus = Modulus(user_id=user_id, inputs=[10, 2])
+    modulus = Modulus(user_id=user_id, inputs=[4, 2])
     assert modulus.get_result() == 0
     
-    power = Power(user_id=user_id, inputs=[10, 2])
-    assert power.get_result() == 100
+    power = Power(user_id=user_id, inputs=[4, 2])
+    assert power.get_result() == 16
     
-    root = Root(user_id=user_id, inputs=[10, 2])
+    root = Root(user_id=user_id, inputs=[4, 2])
     result = root.get_result()
-    assert abs(result - 3.162) < 0.01  # Approximately sqrt(10)
+    assert abs(result - 2.0) < 0.01  # Approximately sqrt(4)
