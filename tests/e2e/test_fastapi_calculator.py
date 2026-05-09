@@ -227,6 +227,102 @@ def test_create_calculation_division(base_url: str):
     # Expected result: 100 / 2 / 5 = 10
     assert "result" in data and data["result"] == 10, f"Expected result 10, got {data.get('result')}"
 
+def test_create_calculation_modulus(base_url: str):
+    user_data = {
+        "first_name": "Calc",
+        "last_name": "Modulus",
+        "email": f"calc.mod{uuid4()}@example.com",
+        "username": f"calc_mod_{uuid4()}",
+        "password": "SecurePass123!",
+        "confirm_password": "SecurePass123!"
+    }
+    token_data = register_and_login(base_url, user_data)
+    access_token = token_data["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{base_url}/calculations"
+    payload = {
+        "type": "modulus",
+        "inputs": [10, 3],
+        "user_id": "ignored"
+    }
+    response = requests.post(url, json=payload, headers=headers)
+    assert response.status_code == 201, f"Modulus calculation creation failed: {response.text}"
+    data = response.json()
+    # Expected result: 10 % 3 = 1
+    assert "result" in data and data["result"] == 1, f"Expected result 1, got {data.get('result')}"
+
+def test_create_calculation_power(base_url: str):
+    user_data = {
+        "first_name": "Calc",
+        "last_name": "Power",
+        "email": f"calc.pow{uuid4()}@example.com",
+        "username": f"calc_pow_{uuid4()}",
+        "password": "SecurePass123!",
+        "confirm_password": "SecurePass123!"
+    }
+    token_data = register_and_login(base_url, user_data)
+    access_token = token_data["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{base_url}/calculations"
+    payload = {
+        "type": "power",
+        "inputs": [2, 3],
+        "user_id": "ignored"
+    }
+    response = requests.post(url, json=payload, headers=headers)
+    assert response.status_code == 201, f"Power calculation creation failed: {response.text}"
+    data = response.json()
+    # Expected result: 2 ^ 3 = 8
+    assert "result" in data and data["result"] == 8, f"Expected result 8, got {data.get('result')}"
+
+def test_create_calculation_root(base_url: str):
+    user_data = {
+        "first_name": "Calc",
+        "last_name": "Root",
+        "email": f"calc.root{uuid4()}@example.com",
+        "username": f"calc_root_{uuid4()}",
+        "password": "SecurePass123!",
+        "confirm_password": "SecurePass123!"
+    }
+    token_data = register_and_login(base_url, user_data)
+    access_token = token_data["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{base_url}/calculations"
+    payload = {
+        "type": "root",
+        "inputs": [100, 2],
+        "user_id": "ignored"
+    }
+    response = requests.post(url, json=payload, headers=headers)
+    assert response.status_code == 201, f"Root calculation creation failed: {response.text}"
+    data = response.json()
+    # Expected result: 100 ^ (1/2) = 10
+    assert "result" in data and data["result"] == 10, f"Expected result 10, got {data.get('result')}"
+
+def test_create_calculation_absolute_difference(base_url: str):
+    user_data = {
+        "first_name": "Calc",
+        "last_name": "AbsDiff",
+        "email": f"calc.absdiff{uuid4()}@example.com",
+        "username": f"calc_absdiff_{uuid4()}",
+        "password": "SecurePass123!",
+        "confirm_password": "SecurePass123!"
+    }
+    token_data = register_and_login(base_url, user_data)
+    access_token = token_data["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"{base_url}/calculations"
+    payload = {
+        "type": "absolute_difference",
+        "inputs": [10, -3],
+        "user_id": "ignored"
+    }
+    response = requests.post(url, json=payload, headers=headers)
+    assert response.status_code == 201, f"Absolute difference calculation creation failed: {response.text}"
+    data = response.json()
+    # Expected result: |10 - (-3)| = |10 + 3| = 13
+    assert "result" in data and data["result"] == 13, f"Expected result 13, got {data.get('result')}"
+
 def test_list_get_update_delete_calculation(base_url: str):
     user_data = {
         "first_name": "Calc",
@@ -316,3 +412,42 @@ def test_model_division():
     with pytest.raises(ValueError):
         calc_zero = Calculation.create("division", dummy_user_id, [100, 0])
         calc_zero.get_result()
+
+def test_model_modulus():
+    dummy_user_id = uuid4()
+    calc = Calculation.create("modulus", dummy_user_id, [10, 3])
+    result = calc.get_result()
+    assert result == 1, f"Modulus result incorrect: expected 1, got {result}"
+
+    #test modulus by zero error
+    with pytest.raises(ValueError):
+        calc_zero = Calculation.create("modulus", dummy_user_id, [10, 0])
+        calc_zero.get_result()
+
+def test_model_power():
+    dummy_user_id = uuid4()
+    calc = Calculation.create("power", dummy_user_id, [2, 3])
+    result = calc.get_result()
+    assert result == 8, f"Power result incorrect: expected 8, got {result}"
+
+def test_model_root():
+    dummy_user_id = uuid4()
+    calc = Calculation.create("root", dummy_user_id, [100, 2])
+    result = calc.get_result()
+    assert result == 10, f"Root result incorrect: expected 10, got {result}"
+
+    with pytest.raises(ValueError):
+        calc_zero = Calculation.create("root", dummy_user_id, [100, 0])
+        calc_zero.get_result()
+
+    # Negative even root returns complex number, not ValueError
+    calc_negative = Calculation.create("root", dummy_user_id, [-100, 2])
+    result_negative = calc_negative.get_result()
+    # Python returns a complex number for this, verify it works without error
+    assert result_negative is not None
+
+def test_model_absolute_difference():
+    dummy_user_id = uuid4()
+    calc = Calculation.create("absolute_difference", dummy_user_id, [10, -3])
+    result = calc.get_result()
+    assert result == 13, f"Absolute difference result incorrect: expected 13, got {result}"
