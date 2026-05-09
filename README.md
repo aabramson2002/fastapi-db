@@ -262,3 +262,32 @@ Then submit the GitHub repository link as instructed.
 - [Python Downloads](https://www.python.org/downloads/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [GitHub SSH Setup Guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+
+# Description
+This program is a professional site that works as a calculator for the user.
+It uses Tailwind for design, FastAPI for requests, and pgAdmin with Postgres to store data.
+
+layout.html - Provides the layout for the entire site.
+
+index.html - The initial landing page for users that describes what the app does. 
+It allows users to log in or register a new account.
+
+login.html- Lets currently existing users log in.
+
+register.html- Lets new users sign up. 
+
+dashboard.html- Once the user is signed in, it displays information about the user's calculations
+and gives them the ability to make new ones.
+
+edit_calculation.html- Lets the user edit their currently existing calculations.
+
+view_calculation.html- Allows users to see their full calculation history.
+
+# Reflection
+The main changes made for this final project are the creation of new operations for the user to use. These include
+modulus, power, root, and absoulute difference. I updated the calculation model and schema to include the new calculation types,
+and updated the front end to show them. I also added many new tests to make sure the new features work, as well as other test to
+achieve more coverage. Prior to the file, I changed the docker information to reroute localhost from 8000 to 8002. 
+
+# Dockerhub Link
+https://hub.docker.com/repository/docker/aabramson2002/fastapi-db/general
