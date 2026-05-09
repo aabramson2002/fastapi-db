@@ -2,7 +2,7 @@
 
 import pytest  # Import the pytest framework for writing and running tests
 from typing import Union  # Import Union for type hinting multiple possible types
-from app.operations import add, subtract, multiply, divide  # Import the calculator functions from the operations module
+from app.operations import add, subtract, multiply, divide, modulus, power, root, absdiff # Import the calculator functions from the operations module
 
 # Define a type alias for numbers that can be either int or float
 Number = Union[int, float]
@@ -232,3 +232,236 @@ def test_divide_by_zero() -> None:
     # Assert that the exception message contains the expected error message
     assert "Cannot divide by zero!" in str(excinfo.value), \
         f"Expected error message 'Cannot divide by zero!', but got '{excinfo.value}'"
+
+### ---------------------------------------------
+# Unit Tests for the 'modulus' Function
+# ---------------------------------------------
+
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        (5, 2, 1),           # Test modulus of two positive integers
+        (5.5, 2, 1.5),       # Test modulus of a positive float by a positive integer
+        (5, 2.5, 0.0),       # Test modulus of a positive integer by a positive float
+        (-5, 2, 1),          # Test modulus of a negative integer by a positive integer
+        (5, -2, -1),         # Test modulus of a positive integer by a negative integer
+    ],
+    ids=[
+        "modulus_two_positive_integers",
+        "modulus_positive_float_by_positive_integer",
+        "modulus_positive_integer_by_positive_float",
+        "modulus_negative_integer_by_positive_integer",
+        "modulus_positive_integer_by_negative_integer",
+    ]
+)
+def test_modulus(a: Number, b: Number, expected: float) -> None:
+    """
+    Test the 'modulus' function with various combinations of integers and floats.
+
+    This parameterized test verifies that the 'modulus' function correctly calculates the
+    remainder of the division of the first number by the second, handling both positive
+    and negative values, as well as integers and floats. Parameterization allows for efficient
+    testing of multiple scenarios in a concise manner.
+
+    Parameters:
+    - a (Number): The dividend.
+    - b (Number): The divisor.
+    - expected (Number): The expected result of the modulus operation.
+
+    Steps:
+    1. Call the 'modulus' function with arguments 'a' and 'b'.
+    2. Assert that the result is equal to 'expected'.
+
+    Example:
+    >>> test_modulus(5, 2, 1)
+    >>> test_modulus(5.5, 2, 1.5)
+    """
+    # Call the 'modulus' function with the provided arguments
+    result = modulus(a, b)
+    
+    # Assert that the result of modulus(a, b) matches the expected value
+    assert result == expected, f"Expected modulus({a}, {b}) to be {expected}, but got {result}"
+
+def test_modulus_by_zero() -> None:
+    """
+    Test the 'modulus' function with modulus by zero.
+
+    This negative test case verifies that attempting to perform modulus by zero raises a ValueError
+    with the appropriate error message. It ensures that the application correctly handles
+    invalid operations and provides meaningful feedback to the user.
+
+    Steps:
+    1. Attempt to call the 'modulus' function with arguments 5 and 0, which should raise a ValueError.
+    2. Use pytest's 'raises' context manager to catch the expected exception.
+    3. Assert that the error message contains "Cannot modulus by zero!".
+
+    Example:
+    >>> test_modulus_by_zero()
+    """
+    # Use pytest's context manager to check for a ValueError when performing modulus by zero
+    with pytest.raises(ValueError) as excinfo:
+        # Attempt to perform modulus of 5 by 0, which should raise a ValueError
+        modulus(5, 0)
+    
+    # Assert that the exception message contains the expected error message
+    assert "Cannot perform modulus by zero!" in str(excinfo.value), \
+        f"Expected error message 'Cannot perform modulus by zero!', but got '{excinfo.value}'"
+    
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        (2, 3, 8),           # Test 2 raised to the power
+        (5, 0, 1),           # Test any number raised to the power of 0
+        (2.5, 3, 15.625),    # Test a positive float raised to a positive integer
+        (2, -1, 0.5),        # Test a positive integer raised to a negative integer
+        (-2, 3, -8),         # Test a negative integer raised to an odd positive integer
+    ],
+    ids=[
+        "power_positive_integer",
+        "power_zero_exponent",
+        "power_positive_float_by_positive_integer",
+        "power_positive_integer_by_negative_integer",
+        "power_negative_integer_by_odd_positive_integer",
+    ]
+)
+def test_power(a: Number, b: Number, expected: float) -> None:
+    """
+    Test the 'power' function with various combinations of integers and floats.
+
+    This parameterized test verifies that the 'power' function correctly calculates the
+    result of raising the first number to the power of the second, handling both positive
+    and negative values, as well as integers and floats. Parameterization allows for efficient
+    testing of multiple scenarios in a concise manner.
+
+    Parameters:
+    - a (Number): The base number.
+    - b (Number): The exponent.
+    - expected (Number): The expected result of the power operation.
+
+    Steps:
+    1. Call the 'power' function with arguments 'a' and 'b'.
+    2. Assert that the result is equal to 'expected'.
+
+    Example:
+    >>> test_power(2, 3, 8)
+    >>> test_power(5, 0, 1)
+    """
+    # Call the 'power' function with the provided arguments
+    result = power(a, b)
+    
+    # Assert that the result of power(a, b) matches the expected value
+    assert result == expected, f"Expected power({a}, {b}) to be {expected}, but got {result}"
+
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        (27, 3, 3),          # Test the cube root of a perfect cube
+        (16, 4, 2),          # Test the fourth root of a perfect fourth power
+        (9, 2, 3),           # Test the square root of a perfect square
+        (0, 3, 0),           # Test the root of zero
+        (8, 3, 2),           # Test the cube root of a perfect cube
+    ],
+    ids=[
+        "root_cube_of_perfect_cube",
+        "root_fourth_of_perfect_fourth_power",
+        "root_square_of_perfect_square",
+        "root_of_zero",
+        "root_cube_of_perfect_cube_2",  
+    ]
+)
+def test_root(a: Number, b: Number, expected: float) -> None:
+    """
+    Test the 'root' function with various combinations of integers and floats.
+
+    This parameterized test verifies that the 'root' function correctly calculates the
+    b-th root of a, handling both positive and negative values, as well as integers and floats.
+    Parameterization allows for efficient testing of multiple scenarios in a concise manner.
+
+    Parameters:
+    - a (Number): The number to find the root of.
+    - b (Number): The degree of the root.
+    - expected (Number): The expected result of the root operation.
+
+    Steps:
+    1. Call the 'root' function with arguments 'a' and 'b'.
+    2. Assert that the result is equal to 'expected'.
+
+    Example:
+    >>> test_root(27, 3, 3)
+    >>> test_root(16, 4, 2)
+    """
+    # Call the 'root' function with the provided arguments
+    result = root(a, b)
+    
+    # Assert that the result of root(a, b) matches the expected value
+    assert result == expected, f"Expected root({a}, {b}) to be {expected}, but got {result}"
+
+def test_root_by_zero() -> None:
+    """
+    Test the 'root' function with root by zero.
+
+    This negative test case verifies that attempting to perform root with zero as the degree raises a ValueError
+    with the appropriate error message. It ensures that the application correctly handles
+    invalid operations and provides meaningful feedback to the user.
+
+    Steps:
+    1. Attempt to call the 'root' function with arguments 16 and 0, which should raise a ValueError.
+    2. Use pytest's 'raises' context manager to catch the expected exception.
+    3. Assert that the error message contains "Cannot take root with zero as degree!".
+
+    Example:
+    >>> test_root_by_zero()
+    """
+    # Use pytest's context manager to check for a ValueError when performing root by zero
+    with pytest.raises(ValueError) as excinfo:
+        # Attempt to perform root of 16 by 0, which should raise a ValueError
+        root(16, 0)
+    
+    # Assert that the exception message contains the expected error message
+    assert "Cannot find root of zero!" in str(excinfo.value), \
+        f"Expected error message 'Cannot find root of zero!', but got '{excinfo.value}'"
+    
+
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        (5, 3, 2),           # Test absolute difference of two positive integers
+        (-5, 3, 8),          # Test absolute difference of a negative integer and a positive integer
+        (5.5, 2.5, 3.0),    # Test absolute difference of two positive floats
+        (-5.5, -2.5, 3.0),   # Test absolute difference of two negative floats
+        (0, 5, 5),            # Test absolute difference of zero and a positive integer
+    ],
+    ids=[
+        "absdiff_two_positive_integers",
+        "absdiff_negative_and_positive_integer",
+        "absdiff_two_positive_floats",
+        "absdiff_two_negative_floats",
+        "absdiff_zero_and_positive_integer",
+    ]
+)
+def test_absdiff(a: Number, b: Number, expected: float) -> None:
+    """
+    Test the 'absdiff' function with various combinations of integers and floats.
+
+    This parameterized test verifies that the 'absdiff' function correctly calculates the
+    absolute difference between two numbers, handling both positive and negative values, as well as integers and floats.
+    Parameterization allows for efficient testing of multiple scenarios in a concise manner.
+
+    Parameters:
+    - a (Number): The first number.
+    - b (Number): The second number.
+    - expected (Number): The expected result of the absolute difference operation.
+
+    Steps:
+    1. Call the 'absdiff' function with arguments 'a' and 'b'.
+    2. Assert that the result is equal to 'expected'.
+
+    Example:
+    >>> test_absdiff(5, 3, 2)
+    >>> test_absdiff(-5, 3, 8)
+    """
+    # Call the 'absdiff' function with the provided arguments
+    result = absdiff(a, b)
+    
+    # Assert that the result of absdiff(a, b) matches the expected value
+    assert result == expected, f"Expected absdiff({a}, {b}) to be {expected}, but got {result}"
