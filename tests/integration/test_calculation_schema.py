@@ -26,6 +26,10 @@ def test_calculation_type_enum_values():
     assert CalculationType.SUBTRACTION.value == "subtraction"
     assert CalculationType.MULTIPLICATION.value == "multiplication"
     assert CalculationType.DIVISION.value == "division"
+    assert CalculationType.MODULUS.value == "modulus"
+    assert CalculationType.POWER.value == "power"
+    assert CalculationType.ROOT.value == "root"
+    assert CalculationType.ABSOLUTE_DIFFERENCE.value == "absolute_difference"
 
 
 # ============================================================================
@@ -65,7 +69,7 @@ def test_calculation_base_case_insensitive_type():
 def test_calculation_base_invalid_type():
     """Test that invalid calculation type raises ValidationError."""
     data = {
-        "type": "modulus",  # Invalid type
+        "type": "invalid_operation",  # Actually invalid type
         "inputs": [10, 3]
     }
     with pytest.raises(ValidationError) as exc_info:
@@ -288,18 +292,25 @@ def test_multiple_calculations_with_different_types():
     calcs_data = [
         {"type": "addition", "inputs": [1, 2, 3], "user_id": str(user_id)},
         {"type": "subtraction", "inputs": [10, 3], "user_id": str(user_id)},
-        {"type": "multiplication", "inputs": [2, 3, 4],
-         "user_id": str(user_id)},
+        {"type": "multiplication", "inputs": [2, 3, 4], "user_id": str(user_id)},
         {"type": "division", "inputs": [100, 5], "user_id": str(user_id)},
+        {"type": "modulus", "inputs": [10, 3], "user_id": str(user_id)},
+        {"type": "power", "inputs": [2, 3], "user_id": str(user_id)},
+        {"type": "root", "inputs": [27, 3], "user_id": str(user_id)},
+        {"type": "absolute_difference", "inputs": [10, -4], "user_id": str(user_id)}
     ]
     
     calcs = [CalculationCreate(**data) for data in calcs_data]
     
-    assert len(calcs) == 4
+    assert len(calcs) == 8
     assert calcs[0].type == CalculationType.ADDITION
     assert calcs[1].type == CalculationType.SUBTRACTION
     assert calcs[2].type == CalculationType.MULTIPLICATION
     assert calcs[3].type == CalculationType.DIVISION
+    assert calcs[4].type == CalculationType.MODULUS
+    assert calcs[5].type == CalculationType.POWER
+    assert calcs[6].type == CalculationType.ROOT
+    assert calcs[7].type == CalculationType.ABSOLUTE_DIFFERENCE
 
 
 def test_schema_with_large_numbers():
@@ -341,7 +352,46 @@ def test_calculation_base_division_by_zero_validation():
         CalculationBase(**data)
     assert any("Cannot divide by zero" in str(err) for err in exc_info.value.errors())
 
-def test_calculation_base_non_division_with_zero():
+def test_calculation_base_modulus_by_zero_validation():
+    """Test that modulus schema allows zero divisor (validation happens at model level)"""
+    data = {
+        "type": "modulus",
+        "inputs": [100, 4]  # Valid modulus input
+    }
+    calc = CalculationBase(**data)
+    assert calc.type == CalculationType.MODULUS
+    assert calc.inputs == [100, 4]
+
+def test_calculation_base_root_by_zero_validation():
+    """Test that root schema allows zero (validation happens at model level)"""
+    data = {
+        "type": "root",
+        "inputs": [81, 2]  # Valid root input
+    }
+    calc = CalculationBase(**data)
+    assert calc.type == CalculationType.ROOT
+    assert calc.inputs == [81, 2]
+
+def test_calculation_base_root_even_negative_validation():
+    """Test that root schema allows negative numbers (validation happens at model level)"""
+    data = {
+        "type": "root",
+        "inputs": [-16, 4]  # Valid input at schema level
+    }
+    calc = CalculationBase(**data)
+    assert calc.type == CalculationType.ROOT
+    assert calc.inputs == [-16, 4]
+
+def test_calculation_base_root_odd_negative_valid():
+    """Test that root schema allows odd root of negative number"""
+    data = {
+        "type": "root",
+        "inputs": [-27, 3]  # Odd root of negative number is valid
+    }
+    calc = CalculationBase(**data)
+    assert calc.inputs == [-27, 3]
+
+def test_calculation_base_non_zero():
     """Test that other operations allow zero in inputs"""
     data = {
         "type": "addition",
@@ -415,6 +465,6 @@ def test_calculation_response_valid():
 
 def test_calculation_type_enum_all_values():
     """Test all enum values are properly defined"""
-    assert len(CalculationType) == 4
+    assert len(CalculationType) == 8
     for calc_type in CalculationType:
-        assert calc_type.value in ["addition", "subtraction", "multiplication", "division"]
+        assert calc_type.value in ["addition", "subtraction", "multiplication", "division", "modulus", "power", "root", "absolute_difference"]
