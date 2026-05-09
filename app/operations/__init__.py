@@ -12,6 +12,10 @@ Functions:
 - subtract(a: Union[int, float], b: Union[int, float]) -> Union[int, float]: Returns the difference when b is subtracted from a.
 - multiply(a: Union[int, float], b: Union[int, float]) -> Union[int, float]: Returns the product of a and b.
 - divide(a: Union[int, float], b: Union[int, float]) -> float: Returns the quotient when a is divided by b. Raises ValueError if b is zero.
+- modulus(a: Union[int, float], b: Union[int, float]) -> Union[int, float]: Returns the remainder of a divided by b. Raises ValueError if b is zero.
+- power(a: Union[int, float], b: Union[int, float]) -> Union[int, float]: Returns a raised to the power of b.
+- root(a: Union[int, float], b: Union[int, float]) -> float: Returns the b-th root of a. Raises ValueError if b is zero.
+- absdiff(a: Union[int, float], b: Union[int, float]) -> Union[int, float]: Returns the absolute difference between a and b.
 
 Usage:
 These functions can be imported and used in other modules or integrated into APIs
@@ -117,4 +121,119 @@ def divide(a: Number, b: Number) -> float:
     
     # Perform division of a by b and return the result as a float
     result = a / b
+    return result
+
+def modulus(a: Number, b: Number) -> Number:
+    """
+    Return the remainder of the division of a by b.
+
+    Parameters:
+    - a (int or float): The dividend.
+    - b (int or float): The divisor.
+
+    Returns:
+    - int or float: The remainder of a divided by b.
+
+    Raises:
+    - ValueError: If b is zero, as modulus by zero is undefined.
+
+    Example:
+    >>> modulus(5, 2)
+    1
+    >>> modulus(5.5, 2)
+    1.5
+    >>> modulus(5, 0)
+    Traceback (most recent call last):
+        ...
+    ValueError: Cannot perform modulus by zero!
+    """
+    # Check if the divisor is zero to prevent modulus by zero
+    if b == 0:
+        # Raise a ValueError with a descriptive message
+        raise ValueError("Cannot perform modulus by zero!")
+    
+    # Perform modulus of a by b and return the result
+    result = a % b
+    return result
+
+def power(a: Number, b: Number) -> Number:
+    """
+    Return a raised to the power of b.
+
+    Parameters:
+    - a (int or float): The base number.
+    - b (int or float): The exponent.
+
+    Returns:
+    - int or float: The result of a raised to the power of b.
+
+    Example:
+    >>> power(2, 3)
+    8
+    >>> power(5, 0)
+    1
+    >>> power(2, -1)
+    0.5
+    """
+    # Perform exponentiation of a by b and return the result
+    result = a ** b
+    return result
+
+def root(a: Number, b: Number) -> float:
+    """
+    Return the b-th root of a.
+
+    Parameters:
+    - a (int or float): The number to find the root of.
+    - b (int or float): The degree of the root.
+
+    Returns:
+    - float: The b-th root of a.
+
+    Raises:
+    - ValueError: If b is zero, as root of zero is undefined.
+
+    Example:
+    >>> root(27, 3)
+    3.0
+    >>> root(16, 4)
+    2.0
+    >>> root(5, 0)
+    Traceback (most recent call last):
+        ...
+    ValueError: Cannot find root of zero!
+    """
+    # Check if the degree of the root is zero to prevent undefined behavior
+    if b == 0:
+        # Raise a ValueError with a descriptive message
+        raise ValueError("Cannot find root of zero!")
+    if a < 0 and b % 2 == 0:
+        # Raise a ValueError if trying to take an even root of a negative number
+        raise ValueError("Cannot take even root of a negative number!")
+    
+    # Perform root calculation using exponentiation and return the result as a float
+    result = a ** (1 / b)
+    return result
+
+def absdiff(a: Number, b: Number) -> Number:
+    """
+    Return the absolute difference between two numbers.
+
+    Parameters:
+    - a (int or float): The first number.
+    - b (int or float): The second number.
+
+    Returns:
+    - int or float: The absolute difference between a and b.
+
+    Example:
+    >>> absdiff(5, 3)
+    2
+    >>> absdiff(3, 5)
+    2
+    >>> absdiff(5.5, 2.5)
+    3.0
+    """
+    # Calculate the absolute difference using the built-in abs function
+    result = abs(a - b)
     return result
