@@ -61,3 +61,26 @@ def test_init_db(mock_settings):
     engine = database.init_db(database_url=mock_settings.DATABASE_URL)
     assert engine is not None
     assert database.SessionLocal is not None
+
+def test_get_db_with_uninitialized_sessionlocal(mock_settings):
+    """Test that get_db raises RuntimeError when SessionLocal is not initialized."""
+    database = reload_database_module()
+    database.SessionLocal = None
+    
+    with pytest.raises(RuntimeError, match="Database not initialized"):
+        next(database.get_db())
+
+def test_get_db_yields_session(mock_settings):
+    """Test that get_db yields a valid session."""
+    database = reload_database_module()
+    database.init_db(database_url=mock_settings.DATABASE_URL)
+    
+    db_gen = database.get_db()
+    session = next(db_gen)
+    
+    assert isinstance(session, Session)
+    
+    try:
+        next(db_gen)
+    except StopIteration:
+        pass
