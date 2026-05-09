@@ -101,3 +101,29 @@ def test_get_current_active_user_inactive(mock_verify_token):
 
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert exc_info.value.detail == "Inactive user"
+
+# Test get_current_user with dict containing only sub key
+def test_get_current_user_minimal_payload_with_sub(mock_verify_token):
+    test_user_id = uuid4()
+    minimal_payload = {"sub": str(test_user_id)}
+    mock_verify_token.return_value = minimal_payload
+    user_response = get_current_user(token="validtoken")
+    assert isinstance(user_response, UserResponse)
+    assert user_response.id == test_user_id
+    assert user_response.username == "unknown"
+
+# Test get_current_user with UUID directly
+def test_get_current_user_uuid_token_data(mock_verify_token):
+    user_id = uuid4()
+    mock_verify_token.return_value = user_id
+    user_response = get_current_user(token="validtoken")
+    assert isinstance(user_response, UserResponse)
+    assert user_response.id == user_id
+    assert user_response.username == "unknown"
+
+# Test get_current_user with invalid token data type
+def test_get_current_user_invalid_token_data_type(mock_verify_token):
+    mock_verify_token.return_value = 12345
+    with pytest.raises(HTTPException) as exc_info:
+        get_current_user(token="validtoken")
+    assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
