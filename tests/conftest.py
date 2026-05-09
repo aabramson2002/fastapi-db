@@ -183,9 +183,13 @@ def fake_user_data() -> Dict[str, str]:
 @pytest.fixture
 def test_user(db_session: Session) -> User:
     """
-    Create and return a single test user.
+    Create and return a single test user with known password for testing.
     """
     user_data = create_fake_user()
+    # Override password_hash with a known password for consistent testing
+    user_data["password_hash"] = User.hash_password("TestPassword123")
+    user_data["username"] = "testuser"
+    user_data["email"] = "testuser@example.com"
     user = User(**user_data)
     db_session.add(user)
     db_session.commit()
